@@ -3,6 +3,7 @@
 ## Title: unitscan
 ## Version: 0.1.11
 ## Notes: Unit scanner with flashy alert
+## X-Curse-Project-ID: 487885
 ## SavedVariables: unitscan_targets
 
 #@no-lib-strip@
