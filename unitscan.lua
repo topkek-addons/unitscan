@@ -1,3 +1,6 @@
+--[[
+  modded by topkek
+--]]
 local addon = LibStub("AceAddon-3.0"):NewAddon("unitscan", "AceEvent-3.0")
 local unitscan = CreateFrame('Frame')
 local forbidden
@@ -34,6 +37,7 @@ function alertUpdate()
 	if has_alert and scout then
 		addon:SendMessage("RaidInvite_WorldBoss", boss)
 		started = true
+		has_alert = false
 	end
 end
 
@@ -55,9 +59,9 @@ do
 	function unitscan.alert()
 		if not last_alerted or GetTime() - last_alerted > 5 then -- 8
 			for _, name in ipairs(world_bosses) do
-				if name == unitscan.discovered_unit then
+				if string.upper(name) == unitscan.discovered_unit then
 					has_alert = true
-					boss = unitscan.discovered_unit
+					boss = name
 					SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
 					SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
 				end
@@ -79,6 +83,7 @@ function unitscan.target(name)
 			unitscan.flash.animation:Play()
 			unitscan.discovered_unit = name
 			unitscan.alert()
+			started = false
 		end
 	else
 		found[name] = false
@@ -301,9 +306,6 @@ do
 		if GetTime() - unitscan.last_check >= CHECK_INTERVAL then
 			unitscan.last_check = GetTime()
 			for name in pairs(unitscan_targets) do
-				unitscan.target(name)
-			end
-			for _, name in ipairs(world_bosses) do
 				unitscan.target(name)
 			end
 		end
