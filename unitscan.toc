@@ -3,7 +3,7 @@
 ## Title: unitscan
 ## Version: 0.1.11
 ## Notes: Unit scanner with flashy alert
-## SavedVariables: unitscan_targets, saved
+## SavedVariables: unitscan_targets
 
 #@no-lib-strip@
 Libs\LibStub\LibStub.lua
