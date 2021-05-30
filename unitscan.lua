@@ -341,6 +341,12 @@ function unitscan.toggle_target(name)
 		unitscan.print('+ ' .. key)
 	end
 end
+
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
 	
 SLASH_UNITSCAN1 = '/unitscan'
 function SlashCmdList.UNITSCAN(parameter)
@@ -349,6 +355,9 @@ function SlashCmdList.UNITSCAN(parameter)
 	if name == '' then
 		for _, key in ipairs(unitscan.sorted_targets()) do
 			unitscan.print(key)
+		end
+		if tablelength(unitscan.sorted_targets()) == 0 then
+			print("No targets currently being scanned.")
 		end
 	else
 		unitscan.toggle_target(name)
