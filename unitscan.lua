@@ -58,8 +58,8 @@ do
 				if name == unitscan.discovered_unit then
 					has_alert = true
 					boss = unitscan.discovered_unit
-					-- SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
-					-- SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+					SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+					SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
 				end
 			end
 		end
