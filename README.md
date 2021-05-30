@@ -15,3 +15,5 @@ When a target is detected it is removed and has to be readded to continue scanni
 Topkek mod:
 If you arrive to scout the world boss use `/scout` to turn scouting on. This can also be used retroactively.
 When scouting is turned on, RaidInvites will automatically get triggered to start invites upon boss spawn.
+
+Scouts should not be in group so they can start invites (cannot do that if not leader/assist and already in a group).
