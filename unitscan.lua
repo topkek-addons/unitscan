@@ -1,31 +1,20 @@
-local addon = LibStub("AceAddon-3.0"):NewAddon("unitscan", "AceComm-3.0", "AceEvent-3.0", "AceSerializer-3.0")
-local LibDeflate = LibStub:GetLibrary("LibDeflate")
+local addon = LibStub("AceAddon-3.0"):NewAddon("unitscan", "AceEvent-3.0")
 local unitscan = CreateFrame('Frame')
-local members = {}
 local forbidden
-local started
+local scout = false
+local started = false
 local has_alert = false
+local boss = nil
 
 unitscan:SetScript('OnUpdate', function() unitscan.UPDATE() end)
 unitscan:SetScript('OnEvent', function(_, event, arg1)
 	if event == 'ADDON_LOADED' and arg1 == 'unitscan' then
 		unitscan.LOAD()
-		started = GetTime()
-		addon:RegisterComm("unitscan", "OnCommReceive")
 	elseif event == 'ADDON_ACTION_FORBIDDEN' and arg1 == 'unitscan' then
 		forbidden = true
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		if UnitName'target' and strupper(UnitName'target') == unitscan.button:GetText() and not GetRaidTargetIndex'target' and (not IsInRaid() or UnitIsGroupAssistant'player' or UnitIsGroupLeader'player') then
 			SetRaidTarget('target', 4)
-		end
-	elseif event == 'GUILD_ROSTER_UPDATE' then
-		unitscan:UnregisterEvent'GUILD_ROSTER_UPDATE'
-		members = {}
-		for i = 1, GetNumGuildMembers() do
-			local name, _, _, _, _, _, _, _, online = GetGuildRosterInfo(i);
-			if online and type(members[name]) ~= table then
-				members[name] = true
-			end
 		end
 	end
 end)
@@ -38,40 +27,14 @@ local YELLOW = {1, 1, .15}
 local CHECK_INTERVAL = .1
 
 unitscan_targets = {}
+local world_bosses = { "Doom Lord Kazzak", "Doomwalker" }
 local found = {}
 
 function alertUpdate()
-	if has_alert then
-		local firstStartedName
-		local firstStarted
-		local unset = false
-		for name in pairs(members) do
-			if type(members[name]) ~= "table" then
-				-- check online status of player
-				-- ignore unset if offline
-				unset = true
-			end
-			if unset then
-				return
-			end
-			
-			if members[name].zone == "Throne of Kil'jaeden" and members[name].boss == "Doom Lord Kazzak" then
-				
-			elseif members[name].zone == "Shadowmoon Valley" and members[name].boss == "Doomwalker" then
-
-			end
-			-- disable has alert
-		end
-		-- addon:SendMessage("RaidInvite_WorldBoss", unitscan.discovered_unit)
-		-- SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
-		-- SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
-		-- disable has alert
+	if has_alert and scout then
+		addon:SendMessage("RaidInvite_WorldBoss", boss)
+		started = true
 	end
-end
-
-function GetGuildSnapshot()
-	unitscan:RegisterEvent'GUILD_ROSTER_UPDATE'
-	GuildRoster()
 end
 
 do
@@ -91,53 +54,15 @@ do
 	
 	function unitscan.alert()
 		if not last_alerted or GetTime() - last_alerted > 5 then -- 8
-			local report = {
-				-- [zone] = ,
-				-- [name] = ,
-				-- [started] = ,
-				-- [boss] = ,
-				-- [blocking] = false,
-			}
-			local serialized = addon:Serialize(report)
-			local compressed = LibDeflate:CompressDeflate(serialized, {level = 1})
-			local data = LibDeflate:EncodeForWoWAddonChannel(compressed)
-			has_alert = true
-			GetGuildSnapshot()
-			addon:SendCommMessage("unitscan_alert", data, "GUILD")
-			last_alerted = GetTime()
+			for _, name in ipairs(world_bosses) do
+				if name == unitscan.discovered_unit then
+					has_alert = true
+					boss = unitscan.discovered_unit
+					-- SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+					-- SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+				end
+			end
 		end
-	end
-end
-
-function addon:OnCommReceive(prefix, msg, distribution, sender)
-	print(prefix)
-  if UnitGUID(sender) == UnitGUID(UnitName("player")) then
-    return
-  end
-	-- check for raid invite blocking event (just tell which boss)
-	-- exit early if found for the boss we are alerting for
-	-- disable has_alert
-	if prefix == "unitscan_alert" then
-		local report = {
-			-- [zone] = ,
-			-- [name] = ,
-			-- [started] = ,
-			-- [boss] = ,
-			-- [blocking] = false,
-		}
-		local serialized = addon:Serialize(report)
-		local compressed = LibDeflate:CompressDeflate(serialized, {level = 1})
-		local data = LibDeflate:EncodeForWoWAddonChannel(compressed)
-		addon:SendCommMessage("unitscan_ping", data, WHISPER, sender)
-		-- set kazzak or doomwalker status here
-	elseif prefix == "unitscan_ping" then
-		local decoded = LibDeflate:DecodeForWoWAddonChannel(msg)
-		local decompressed = LibDeflate:DecompressDeflate(decoded)
-		local ok, data = addon:Deserialize(decompressed)
-		if not ok then
-			return
-		end
-		members[sender] = data
 	end
 end
 
@@ -147,13 +72,6 @@ function unitscan.target(name)
 	SetCVar('Sound_EnableAllSound', 0)
 	TargetUnit(name, true)
 	SetCVar('Sound_EnableAllSound', sound_setting)
-	if name == "Doom Lord Kazzak" or name == "Doomwalker" then
-		unitscan.play_sound()
-		unitscan.flash.animation:Play()
-		unitscan.discovered_unit = name
-		unitscan.alert()
-		return
-	end
 	if forbidden then
 		if not found[name] then
 			found[name] = true
@@ -385,8 +303,13 @@ do
 			for name in pairs(unitscan_targets) do
 				unitscan.target(name)
 			end
+			for _, name in ipairs(world_bosses) do
+				unitscan.target(name)
+			end
 		end
-		alertUpdate()
+		if not started then
+			alertUpdate()
+		end
 	end
 end
 
@@ -427,5 +350,15 @@ function SlashCmdList.UNITSCAN(parameter)
 		end
 	else
 		unitscan.toggle_target(name)
+	end
+end
+
+SLASH_SCOUT1 = '/scout'
+function SlashCmdList.SCOUT(parameter)
+	scout = not scout
+	if scout then
+		print("|cffFF0000[unitscan]|r |cffFFAF00World boss scouting enabled|r")
+	else
+		print("|cffFF0000[unitscan]|r |cffFFAF00World boss scouting disabled|r")
 	end
 end
