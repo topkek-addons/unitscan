@@ -1,7 +1,7 @@
-## Interface: 11302
+## Interface: 20501
 ## Author: topkek
 ## Title: unitscan
-## Version: 0.1.0
+## Version: 0.1.1
 ## Notes: Unit scanner with flashy alert
 ## X-Curse-Project-ID: 487885
 ## SavedVariables: unitscan_targets
