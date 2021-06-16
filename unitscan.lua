@@ -7,6 +7,7 @@ local forbidden
 local scout = false
 local started = false
 local has_alert = false
+local guild_announce = false
 local boss = nil
 
 unitscan:SetScript('OnUpdate', function() unitscan.UPDATE() end)
@@ -62,8 +63,11 @@ do
 				if string.upper(name) == unitscan.discovered_unit then
 					has_alert = true
 					boss = name
-					SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
-					SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+					if not guild_announce then
+						guild_announce = true
+						SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+						SendChatMessage("********"..unitscan.discovered_unit.." has spawned********", "GUILD")
+					end
 				end
 			end
 		end
