@@ -81,6 +81,10 @@ function unitscan.target(name)
 	TargetUnit(name, true)
 	SetCVar('Sound_EnableAllSound', sound_setting)
 	if forbidden then
+		if name == 'DOOMWALKER' and not (GetMinimapZoneText() == "Shadowmoon Valley") then
+			found[name] = false
+			return
+		end	
 		if not found[name] then
 			found[name] = true
 			unitscan.play_sound()
